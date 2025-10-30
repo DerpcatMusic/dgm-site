@@ -1,0 +1,21 @@
+name = "dgm-site"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "dist"
+
+[env.production]
+kv_namespaces = [
+  { binding = "ARTISTS_KV", id = "your_kv_namespace_id_here", preview_id = "your_preview_kv_namespace_id_here" }
+]
+
+[env.production.vars]
+AUTH_SECRET = "your_auth_secret_here"
+AUTH_TRUST_HOST = "true"
+GOOGLE_CLIENT_ID = "your_google_client_id_here"
+GOOGLE_CLIENT_SECRET = "your_google_client_secret_here"
+GITHUB_CLIENT_ID = "your_github_client_id"
+GITHUB_CLIENT_SECRET = "your_github_client_secret"
+
+[[kv_namespaces]]
+binding = "ARTISTS_KV"
+id = "your_kv_namespace_id_here"
+preview_id = "your_preview_kv_namespace_id_here"
