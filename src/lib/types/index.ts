@@ -4,7 +4,7 @@ export interface User {
 	email: string;
 	name?: string;
 	image?: string;
-	role?: 'admin' | 'user';
+	role: 'admin' | 'user';
 }
 
 export interface Session {

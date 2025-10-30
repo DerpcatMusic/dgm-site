@@ -10,7 +10,7 @@ export interface User {
 	email: string;
 	name?: string;
 	image?: string;
-	role?: 'admin' | 'user';
+	role: 'admin' | 'user';
 }
 
 // Derived stores from page data session - only on client
