@@ -20,7 +20,9 @@
 </svelte:head>
 
 <div class="min-h-screen bg-neo-white" transition:fly={{ y: 20, duration: 400 }}>
-	<header class="bg-neo-red border-b-8 border-black shadow-[0px_8px_0px_0px_#000000] sticky top-0 z-50">
+	<header
+		class="bg-neo-red border-b-8 border-black shadow-[0px_8px_0px_0px_#000000] sticky top-0 z-50"
+	>
 		<div class="max-w-7xl mx-auto px-8 py-6">
 			<div class="flex justify-between items-center">
 				<a
@@ -28,7 +30,11 @@
 					class="flex items-center bg-transparent border-0 cursor-pointer p-0"
 					aria-label="Go to homepage"
 				>
-					<h1 class="text-6xl font-black text-black uppercase tracking-wider hover:text-neo-blue transition-colors duration-100">DGM</h1>
+					<h1
+						class="text-6xl font-black text-black uppercase tracking-wider hover:text-neo-blue transition-colors duration-100"
+					>
+						DGM
+					</h1>
 				</a>
 				<nav class="flex items-center space-x-6">
 					{#if $isAuthenticated}
@@ -45,13 +51,7 @@
 							>
 						{/if}
 						<form method="POST" action="/?/logout">
-							<Button
-								variant="danger"
-								size="md"
-								type="submit"
-							>
-								Logout
-							</Button>
+							<Button variant="danger" size="md" type="submit">Logout</Button>
 						</form>
 					{:else}
 						<a
@@ -72,7 +72,9 @@
 	<footer class="bg-neo-black text-white border-t-8 border-black shadow-[0px_-8px_0px_0px_#000000]">
 		<div class="max-w-7xl mx-auto px-8 py-12">
 			<div class="text-center">
-				<p class="text-neo-white font-black text-2xl uppercase tracking-wider">&copy; 2024 Dolmen Gate Media. All rights reserved.</p>
+				<p class="text-neo-white font-black text-2xl uppercase tracking-wider">
+					&copy; 2024 Dolmen Gate Media. All rights reserved.
+				</p>
 			</div>
 		</div>
 	</footer>

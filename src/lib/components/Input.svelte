@@ -22,7 +22,8 @@
 	let inputElement: HTMLInputElement;
 
 	// Base classes
-	let baseClasses = 'input-neo w-full border-4 border-black bg-white px-4 py-3 text-lg font-semibold shadow-[4px_4px_0px_0px_#000000] transition-all duration-100 focus:shadow-[2px_2px_0px_0px_#000000] focus:translate-x-1 focus:translate-y-1 focus:outline-none focus:ring-4 focus:ring-black focus:ring-opacity-50';
+	let baseClasses =
+		'input-neo w-full border-4 border-black bg-white px-4 py-3 text-lg font-semibold shadow-[4px_4px_0px_0px_#000000] transition-all duration-100 focus:shadow-[2px_2px_0px_0px_#000000] focus:translate-x-1 focus:translate-y-1 focus:outline-none focus:ring-4 focus:ring-black focus:ring-opacity-50';
 
 	// State classes
 	let stateClasses = $derived(() => {
@@ -40,7 +41,10 @@
 
 <div class="space-y-2">
 	{#if label}
-		<label for={label.toLowerCase().replace(/\s+/g, '-')} class="block text-lg font-black uppercase tracking-wider text-black">
+		<label
+			for={label.toLowerCase().replace(/\s+/g, '-')}
+			class="block text-lg font-black uppercase tracking-wider text-black"
+		>
 			{label}
 			{#if required}
 				<span class="text-neo-red ml-1">*</span>

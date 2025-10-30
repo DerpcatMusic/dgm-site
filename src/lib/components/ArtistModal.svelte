@@ -49,7 +49,7 @@
 	}
 </script>
 
-<Modal isOpen={isOpen} title={artist.name} size="xl" on:close={handleClose}>
+<Modal {isOpen} title={artist.name} size="xl" on:close={handleClose}>
 	<div class="flex flex-col md:flex-row">
 		<!-- Artist Image -->
 		<div
@@ -79,12 +79,12 @@
 		</div>
 
 		<!-- Artist Details -->
-		<div
-			class="w-full md:w-1/2 p-8 flex flex-col"
-			transition:slide={{ delay: 300, duration: 500 }}
-		>
+		<div class="w-full md:w-1/2 p-8 flex flex-col" transition:slide={{ delay: 300, duration: 500 }}>
 			{#if artist.bio}
-				<p class="text-neo-gray font-bold text-xl mb-8 flex-grow" transition:fade={{ delay: 500, duration: 400 }}>
+				<p
+					class="text-neo-gray font-bold text-xl mb-8 flex-grow"
+					transition:fade={{ delay: 500, duration: 400 }}
+				>
 					{artist.bio}
 				</p>
 			{/if}

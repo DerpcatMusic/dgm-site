@@ -121,7 +121,9 @@
 					d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
 				/>
 			</svg>
-			<span class="text-white font-black text-xl uppercase tracking-wider">Continue with Google</span>
+			<span class="text-white font-black text-xl uppercase tracking-wider"
+				>Continue with Google</span
+			>
 			{#if $authLoading}
 				<span id="google-status" class="sr-only">Loading...</span>
 			{/if}
@@ -166,10 +168,14 @@
 						onclick={handlePasskeyLogin}
 						aria-describedby="passkey-login-status"
 					>
-						<span class="text-black font-black text-xl uppercase tracking-wider">{$authLoading ? 'Signing in...' : 'Sign in with Passkey'}</span>
+						<span class="text-black font-black text-xl uppercase tracking-wider"
+							>{$authLoading ? 'Signing in...' : 'Sign in with Passkey'}</span
+						>
 					</Button>
 					{#if $authLoading}
-						<div id="passkey-login-status" class="sr-only">Signing in with passkey, please wait</div>
+						<div id="passkey-login-status" class="sr-only">
+							Signing in with passkey, please wait
+						</div>
 					{/if}
 				</div>
 			</div>
@@ -180,12 +186,17 @@
 				onclick={() => (showPasskeyForm = !showPasskeyForm)}
 				aria-expanded={showPasskeyForm}
 			>
-				<span class="text-black font-black text-xl uppercase tracking-wider">{showPasskeyForm ? 'Cancel' : 'Set up Passkey'}</span>
+				<span class="text-black font-black text-xl uppercase tracking-wider"
+					>{showPasskeyForm ? 'Cancel' : 'Set up Passkey'}</span
+				>
 			</Button>
 
 			{#if showPasskeyForm}
 				<Card variant="bordered" padding="md">
-					<h3 id="passkey-setup-heading" class="text-xl font-black uppercase tracking-wider mb-6 text-black">
+					<h3
+						id="passkey-setup-heading"
+						class="text-xl font-black uppercase tracking-wider mb-6 text-black"
+					>
 						Set up new passkey
 					</h3>
 					<div class="space-y-4">
@@ -214,7 +225,9 @@
 							onclick={handlePasskeyRegistration}
 							aria-describedby="passkey-setup-status"
 						>
-							<span class="text-black font-black text-xl uppercase tracking-wider">{isRegistering ? 'Setting up...' : 'Set up Passkey'}</span>
+							<span class="text-black font-black text-xl uppercase tracking-wider"
+								>{isRegistering ? 'Setting up...' : 'Set up Passkey'}</span
+							>
 						</Button>
 						{#if isRegistering}
 							<div id="passkey-setup-status" class="sr-only">Setting up passkey, please wait</div>

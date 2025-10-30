@@ -44,12 +44,22 @@
 			>
 				Dolmen Gate Media
 			</h1>
-			<p class="text-2xl mb-12 text-neo-white font-bold uppercase tracking-wider" transition:fade={{ delay: 400, duration: 600 }}>
+			<p
+				class="text-2xl mb-12 text-neo-white font-bold uppercase tracking-wider"
+				transition:fade={{ delay: 400, duration: 600 }}
+			>
 				Discover extraordinary artists and their unique sounds. Where music meets innovation.
 			</p>
 			<div class="flex justify-center space-x-8" transition:fade={{ delay: 600, duration: 600 }}>
-				<Button variant="primary" size="lg" onclick={() => document.querySelector('#artists-section')?.scrollIntoView({ behavior: 'smooth' })}>
-					<span class="text-white font-black text-2xl uppercase tracking-wider">Explore Artists</span>
+				<Button
+					variant="primary"
+					size="lg"
+					onclick={() =>
+						document.querySelector('#artists-section')?.scrollIntoView({ behavior: 'smooth' })}
+				>
+					<span class="text-white font-black text-2xl uppercase tracking-wider"
+						>Explore Artists</span
+					>
 				</Button>
 				<Button variant="secondary" size="lg">
 					<span class="text-white font-black text-2xl uppercase tracking-wider">Learn More</span>
@@ -59,7 +69,11 @@
 	</section>
 
 	<!-- Artists Carousel Section - Full White Screen with Sticky Effect -->
-	<section id="artists-section" class="min-h-screen flex items-center justify-center bg-neo-white text-black py-24 sticky top-0 z-20" transition:fade={{ duration: 800 }}>
+	<section
+		id="artists-section"
+		class="min-h-screen flex items-center justify-center bg-neo-white text-black py-24 sticky top-0 z-20"
+		transition:fade={{ duration: 800 }}
+	>
 		<div class="max-w-6xl mx-auto text-center px-8">
 			<h2
 				class="text-6xl font-black mb-16 uppercase tracking-wider"
@@ -91,7 +105,9 @@
 				</div>
 			{:else}
 				<div transition:fade={{ duration: 500 }}>
-					<p class="text-2xl font-black uppercase tracking-wider">No artists available at the moment.</p>
+					<p class="text-2xl font-black uppercase tracking-wider">
+						No artists available at the moment.
+					</p>
 				</div>
 			{/if}
 		</div>

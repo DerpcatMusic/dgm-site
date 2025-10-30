@@ -9,12 +9,7 @@
 		children?: any;
 	}
 
-	let {
-		isOpen,
-		title = '',
-		size = 'md',
-		children
-	}: Props = $props();
+	let { isOpen, title = '', size = 'md', children }: Props = $props();
 
 	const dispatch = createEventDispatcher();
 
@@ -78,7 +73,12 @@
 						aria-label="Close modal"
 					>
 						<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M6 18L18 6M6 6l12 12"></path>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="4"
+								d="M6 18L18 6M6 6l12 12"
+							></path>
 						</svg>
 					</button>
 				</div>
@@ -89,7 +89,12 @@
 					aria-label="Close modal"
 				>
 					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M6 18L18 6M6 6l12 12"></path>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="4"
+							d="M6 18L18 6M6 6l12 12"
+						></path>
 					</svg>
 				</button>
 			{/if}

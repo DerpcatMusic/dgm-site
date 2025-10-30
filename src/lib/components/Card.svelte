@@ -5,11 +5,7 @@
 		children?: any;
 	}
 
-	let {
-		variant = 'default',
-		padding = 'md',
-		children
-	}: Props = $props();
+	let { variant = 'default', padding = 'md', children }: Props = $props();
 
 	// Base classes
 	let baseClasses = 'card-neo bg-white border-4 border-black';

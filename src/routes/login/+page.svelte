@@ -20,8 +20,6 @@
 	<title>Login - DGM Site</title>
 </svelte:head>
 
-<div
-	class="min-h-screen flex items-center justify-center bg-neo-white py-12 px-8"
->
+<div class="min-h-screen flex items-center justify-center bg-neo-white py-12 px-8">
 	<LoginForm />
 </div>

@@ -14,7 +14,9 @@ export interface User {
 }
 
 // Derived stores from page data session - only on client
-export const currentUser = derived(page, ($page) => (browser ? $page.data.session?.user || null : null));
+export const currentUser = derived(page, ($page) =>
+	browser ? $page.data.session?.user || null : null
+);
 export const isAuthenticated = derived(page, ($page) => (browser ? !!$page.data.session : false));
 
 // Store for loading state during auth operations
