@@ -4,7 +4,7 @@ pages_build_output_dir = "dist"
 
 [env.production]
 kv_namespaces = [
-  { binding = "ARTISTS_KV", id = "your_kv_namespace_id_here", preview_id = "your_preview_kv_namespace_id_here" }
+  { binding = "ARTISTS_KV", id = "fb8a6a7714444ba3b20b6501c19766c3", preview_id = "c4c1b04b9dba4c92babceb07d9bc4929" }
 ]
 
 [env.production.vars]
@@ -17,5 +17,5 @@ GITHUB_CLIENT_SECRET = "your_github_client_secret"
 
 [[kv_namespaces]]
 binding = "ARTISTS_KV"
-id = "your_kv_namespace_id_here"
-preview_id = "your_preview_kv_namespace_id_here"
+id = "fb8a6a7714444ba3b20b6501c19766c3"
+preview_id = "c4c1b04b9dba4c92babceb07d9bc4929"
