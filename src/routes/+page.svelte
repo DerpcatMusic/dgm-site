@@ -13,11 +13,7 @@
 	let showModal = $state(false);
 
 	$effect(() => {
-		if (data.kv) {
-			loadArtists(data.kv);
-		} else {
-			loadArtists();
-		}
+		loadArtists();
 	});
 
 	function handleArtistClick(artist: Artist) {

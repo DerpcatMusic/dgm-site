@@ -11,6 +11,8 @@ declare global {
 		interface Platform {
 			env: {
 				ARTISTS_KV: KVNamespace;
+				DB: D1Database;
+				ARTIST_PHOTOS: R2Bucket;
 			};
 		}
 	}

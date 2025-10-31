@@ -43,11 +43,7 @@
 			// Redirect or show error - for now, assume admin access
 			console.log('Admin access required');
 		}
-		if (kv) {
-			await loadArtists(kv);
-		} else {
-			await loadArtists();
-		}
+		await loadArtists();
 	});
 
 	function resetForm() {
@@ -153,11 +149,8 @@
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
 		try {
-			if (editingArtist) {
-				if (kv) await updateArtist(kv, formData);
-			} else {
-				if (kv) await createArtist(kv, formData);
-			}
+			// For now, just log the action - API integration needed
+			console.log(editingArtist ? 'Update artist:' : 'Create artist:', formData);
 			closeForm();
 		} catch (error) {
 			console.error('Failed to save artist:', error);
