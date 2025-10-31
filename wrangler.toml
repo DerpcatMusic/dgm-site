@@ -1,5 +1,6 @@
 name = "dgm-site"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
 [env.production]
@@ -19,3 +20,12 @@ GITHUB_CLIENT_SECRET = "your_github_client_secret"
 binding = "ARTISTS_KV"
 id = "fb8a6a7714444ba3b20b6501c19766c3"
 preview_id = "c4c1b04b9dba4c92babceb07d9bc4929"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "dgm-artists-db"
+database_id = "ff1a020e-1bff-42fd-99ff-3f7ff63c9a85"
+
+[[r2_buckets]]
+binding = "ARTIST_PHOTOS"
+bucket_name = "dgm-artist-photos"

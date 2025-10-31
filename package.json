@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "vite dev",
+		"dev:wrangler": "wrangler pages dev .svelte-kit/cloudflare --d1=DB --r2=ARTIST_PHOTOS",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
@@ -51,6 +52,7 @@
 		"@auth/sveltekit": "latest",
 		"@simplewebauthn/browser": "latest",
 		"@simplewebauthn/server": "latest",
+		"nanoid": "^5.1.6",
 		"wrangler": "latest"
 	}
 }
