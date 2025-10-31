@@ -16,4 +16,4 @@ export {
 } from './stores/auth.js';
 
 // Reexport types
-export type { User } from './stores/auth.js';
+export type { User } from './types/index.js';

@@ -3,19 +3,11 @@ import { browser } from '$app/environment';
 import { page } from '$app/stores';
 import { goto } from '$app/navigation';
 import { registerPasskey, authenticatePasskey, hasPasskeys } from '$lib/passkeys.js';
-
-// Define user interface
-export interface User {
-	id: string;
-	email: string;
-	name?: string;
-	image?: string;
-	role: 'admin' | 'user';
-}
+import type { User } from '$lib/types/index.js';
 
 // Derived stores from page data session - only on client
-export const currentUser = derived(page, ($page) =>
-	browser ? $page.data.session?.user || null : null
+export const currentUser = derived<typeof page, User | null>(page, ($page) =>
+	browser ? ($page.data.session?.user as User) || null : null
 );
 export const isAuthenticated = derived(page, ($page) => (browser ? !!$page.data.session : false));
 

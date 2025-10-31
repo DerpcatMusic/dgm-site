@@ -39,7 +39,7 @@
 
 	onMount(async () => {
 		// Check authentication
-		if (!$isAuthenticated || $currentUser?.role !== 'admin') {
+		if (!$isAuthenticated || ($currentUser?.role && $currentUser.role !== 'admin')) {
 			// Redirect or show error - for now, assume admin access
 			console.log('Admin access required');
 		}
@@ -206,7 +206,7 @@
 	}
 </script>
 
-{#if !$isAuthenticated || $currentUser?.role !== 'admin'}
+{#if !$isAuthenticated || ($currentUser?.role && $currentUser.role !== 'admin')}
 	<div class="min-h-screen bg-neo-white flex items-center justify-center p-8">
 		<Card variant="elevated" padding="lg">
 			<h2 class="text-3xl font-black text-black mb-6 uppercase tracking-wider">Access Denied</h2>

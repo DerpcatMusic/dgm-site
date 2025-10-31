@@ -20,10 +20,10 @@ export async function registerPasskey(
 ): Promise<boolean> {
 	try {
 		// Generate registration options
-		const options: PublicKeyCredentialCreationOptionsJSON = await generateRegistrationOptions({
+		const options = await generateRegistrationOptions({
 			rpName: RP_NAME,
 			rpID: RP_ID,
-			userID: userId,
+			userID: new Uint8Array(Buffer.from(userId, 'utf-8')),
 			userName: userName,
 			userDisplayName: userDisplayName,
 			attestationType: 'direct',
@@ -35,7 +35,7 @@ export async function registerPasskey(
 		});
 
 		// Start registration on client
-		const attResp = await startRegistration(options);
+		const attResp = await startRegistration({ optionsJSON: options as any });
 
 		// Verify registration response
 		const verification = await verifyRegistrationResponse({
@@ -49,9 +49,9 @@ export async function registerPasskey(
 			const { registrationInfo } = verification;
 			const existingAuthenticators = userAuthenticators.get(userId) || [];
 			existingAuthenticators.push({
-				credentialID: registrationInfo!.credentialID,
-				credentialPublicKey: registrationInfo!.credentialPublicKey,
-				counter: registrationInfo!.counter,
+				credentialID: registrationInfo!.credential.id,
+				credentialPublicKey: registrationInfo!.credential.publicKey,
+				counter: registrationInfo!.credential.counter,
 				credentialDeviceType: registrationInfo!.credentialDeviceType,
 				credentialBackedUp: registrationInfo!.credentialBackedUp,
 				transports: attResp.response.transports
@@ -76,18 +76,18 @@ export async function authenticatePasskey(userId: string): Promise<boolean> {
 		}
 
 		// Generate authentication options
-		const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
+		const options = await generateAuthenticationOptions({
 			rpID: RP_ID,
 			allowCredentials: userAuthenticatorsList.map((authenticator) => ({
 				id: authenticator.credentialID,
-				type: 'public-key',
+				type: 'public-key' as const,
 				transports: authenticator.transports
 			})),
 			userVerification: 'preferred'
 		});
 
 		// Start authentication on client
-		const attResp = await startAuthentication(options);
+		const attResp = await startAuthentication({ optionsJSON: options as any });
 
 		// Get authenticator from database
 		const authenticator = userAuthenticatorsList.find((auth) => auth.credentialID === attResp.id);
@@ -102,9 +102,9 @@ export async function authenticatePasskey(userId: string): Promise<boolean> {
 			expectedChallenge: options.challenge,
 			expectedOrigin: ORIGIN,
 			expectedRPID: RP_ID,
-			authenticator: {
-				credentialID: authenticator.credentialID,
-				credentialPublicKey: authenticator.credentialPublicKey,
+			credential: {
+				id: authenticator.credentialID,
+				publicKey: new Uint8Array(Buffer.from(authenticator.credentialPublicKey, 'base64')),
 				counter: authenticator.counter,
 				transports: authenticator.transports
 			}

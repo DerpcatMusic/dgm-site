@@ -22,6 +22,7 @@ interface Session {
 		email: string;
 		name?: string;
 		image?: string;
+		role?: 'admin' | 'user';
 	};
 	accessToken: string;
 }

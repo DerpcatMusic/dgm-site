@@ -43,7 +43,7 @@
 							class="text-black hover:text-neo-blue font-black text-xl uppercase tracking-wider px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[2px_2px_0px_0px_#000000] hover:translate-x-1 hover:translate-y-1 transition-all duration-100"
 							>Dash</a
 						>
-						{#if $currentUser?.role === 'admin'}
+						{#if $currentUser?.role && $currentUser.role === 'admin'}
 							<a
 								href="/admin"
 								class="text-black hover:text-neo-blue font-black text-xl uppercase tracking-wider px-6 py-3 border-4 border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[2px_2px_0px_0px_#000000] hover:translate-x-1 hover:translate-y-1 transition-all duration-100"
