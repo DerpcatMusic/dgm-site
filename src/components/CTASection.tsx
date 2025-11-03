@@ -18,6 +18,11 @@ export default function CTASection() {
     }, 3000);
   };
 
+  const handleSubmitDemo = () => {
+    // Open Tally form in new tab
+    window.open('https://tally.so/r/wkQjdP', '_blank');
+  };
+
   return (
     <section className="bg-white py-24 px-6 relative overflow-hidden snap-section">
       {/* Animated Grid Background */}
@@ -158,6 +163,7 @@ export default function CTASection() {
           {/* Submit Demo Button */}
           <div className="group">
             <Button
+              onClick={handleSubmitDemo}
               size="lg"
               className="w-full h-auto flex flex-col items-center gap-4 text-white border-4 transition-all duration-200 p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1"
               style={{

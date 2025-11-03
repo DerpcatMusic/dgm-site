@@ -34,14 +34,14 @@
 
       --radius: 0.5rem;
       
-      /* Dynamic theme colors */
-      --color-primary: #3B82F6;
-      --color-secondary: #EF4444;
-      --color-accent: #FBBF24;
-      --color-extra-1: #10B981;
-      --color-extra-2: #8B5CF6;
-      --color-background: #FFFFFF;
-      --color-border: #000000;
+      /* Modern Playful Theme Colors */
+      --color-primary: #FF6B9D;
+      --color-secondary: #C44569;
+      --color-accent: #FFA07A;
+      --color-extra-1: #4ECDC4;
+      --color-extra-2: #95E1D3;
+      --color-background: #FFF5E4;
+      --color-border: #2C3E50;
     }
 
     .dark {
@@ -94,7 +94,7 @@
     }
   }
 
-  /* Animated Grid Background */
+  /* Animated Grid Background - More Visible */
   @keyframes gridMove {
     0% {
       transform: translateY(0);
@@ -106,25 +106,30 @@
 
   .animated-grid {
     background-image: 
-      linear-gradient(var(--color-border) 2px, transparent 2px),
-      linear-gradient(90deg, var(--color-border) 2px, transparent 2px);
+      linear-gradient(rgba(44, 62, 80, 0.15) 2px, transparent 2px),
+      linear-gradient(90deg, rgba(44, 62, 80, 0.15) 2px, transparent 2px);
     background-size: 40px 40px;
     animation: gridMove 2s linear infinite;
-    opacity: 0.1;
   }
 
-  /* Smooth scroll snap */
+  /* Ultra Smooth Snap Scroll */
   .snap-container {
     scroll-snap-type: y mandatory;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     overflow-y: scroll;
     height: 100vh;
+    scroll-padding: 0;
   }
 
   .snap-section {
     scroll-snap-align: start;
     scroll-snap-stop: always;
     min-height: 100vh;
+  }
+
+  /* Smooth scroll with CSS */
+  html {
+    scroll-behavior: smooth;
   }
 
   /* Arrow bounce animation */
