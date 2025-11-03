@@ -1,12 +1,16 @@
 import { Button } from "./ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Radio } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function HeroSection() {
   const { theme } = useTheme();
   
+  const handleSubmitDemo = () => {
+    window.open('https://tally.so/r/wkQjdP', '_blank');
+  };
+  
   return (
-    <section className="relative min-h-screen bg-white overflow-hidden snap-section">
+    <section className="relative h-screen bg-white overflow-hidden snap-section flex flex-col justify-center">
       {/* Animated Grid Background */}
       <div className="absolute inset-0 animated-grid" />
       
@@ -14,27 +18,27 @@ export default function HeroSection() {
       <div 
         className="absolute top-20 right-10 w-64 h-64 border-8 rotate-12 -z-10"
         style={{ 
-          backgroundColor: theme?.accent_color || '#FBBF24',
+          backgroundColor: theme?.accent_color || '#FFD60A',
           borderColor: theme?.border_color || '#000000'
         }}
       />
       <div 
         className="absolute bottom-32 left-20 w-48 h-48 rounded-full border-8 -z-10"
         style={{ 
-          backgroundColor: theme?.primary_color || '#3B82F6',
+          backgroundColor: theme?.primary_color || '#E63946',
           borderColor: theme?.border_color || '#000000'
         }}
       />
       <div 
         className="absolute top-1/3 left-1/4 w-32 h-32 border-8 -rotate-45 -z-10"
         style={{ 
-          backgroundColor: theme?.secondary_color || '#EF4444',
+          backgroundColor: theme?.extra_color_1 || '#457B9D',
           borderColor: theme?.border_color || '#000000'
         }}
       />
       
       {/* Main Content */}
-      <div className="container mx-auto px-6 pt-32 pb-20 relative z-10">
+      <div className="container mx-auto px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Column - Typography */}
           <div className="space-y-8">
@@ -43,13 +47,13 @@ export default function HeroSection() {
                 {theme?.label_name?.split(' ')[0] || 'DOLMEN'}
                 <span 
                   className="block -mt-4"
-                  style={{ color: theme?.secondary_color || '#EF4444' }}
+                  style={{ color: theme?.primary_color || '#E63946' }}
                 >
                   {theme?.label_name?.split(' ')[1] || 'GATE'}
                 </span>
                 <span 
                   className="block -mt-4"
-                  style={{ color: theme?.primary_color || '#3B82F6' }}
+                  style={{ color: theme?.extra_color_1 || '#457B9D' }}
                 >
                   {theme?.label_name?.split(' ')[2] || 'MEDIA'}
                 </span>
@@ -57,7 +61,7 @@ export default function HeroSection() {
               <div 
                 className="absolute -right-8 top-1/2 w-24 h-24 border-8 rotate-45"
                 style={{ 
-                  backgroundColor: theme?.accent_color || '#FBBF24',
+                  backgroundColor: theme?.accent_color || '#FFD60A',
                   borderColor: theme?.border_color || '#000000'
                 }}
               />
@@ -76,7 +80,7 @@ export default function HeroSection() {
                 className="border-4 hover:bg-white hover:text-black transition-all duration-200 text-xl font-black px-8 py-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1"
                 style={{
                   backgroundColor: theme?.border_color || '#000000',
-                  color: theme?.background_color || '#FFFFFF',
+                  color: theme?.background_color || '#F1FAEE',
                   borderColor: theme?.border_color || '#000000'
                 }}
               >
@@ -86,7 +90,7 @@ export default function HeroSection() {
                 size="lg"
                 className="text-white border-4 transition-all duration-200 text-xl font-black px-8 py-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1"
                 style={{
-                  backgroundColor: theme?.secondary_color || '#EF4444',
+                  backgroundColor: theme?.primary_color || '#E63946',
                   borderColor: theme?.border_color || '#000000'
                 }}
               >
@@ -96,11 +100,11 @@ export default function HeroSection() {
           </div>
           
           {/* Right Column - Visual Element */}
-          <div className="relative h-[600px] hidden lg:block">
+          <div className="relative h-[500px] hidden lg:block">
             <div 
               className="absolute inset-0 border-8 rotate-3 overflow-hidden"
               style={{ 
-                backgroundColor: theme?.primary_color || '#3B82F6',
+                backgroundColor: theme?.extra_color_1 || '#457B9D',
                 borderColor: theme?.border_color || '#000000'
               }}
             >
@@ -113,12 +117,25 @@ export default function HeroSection() {
             <div 
               className="absolute -bottom-12 -right-12 w-48 h-48 border-8 rounded-full flex items-center justify-center"
               style={{ 
-                backgroundColor: theme?.accent_color || '#FBBF24',
+                backgroundColor: theme?.accent_color || '#FFD60A',
                 borderColor: theme?.border_color || '#000000'
               }}
             >
               <span className="text-4xl font-black rotate-12">EST.<br/>2024</span>
             </div>
+            
+            {/* Submit Demo Badge */}
+            <button
+              onClick={handleSubmitDemo}
+              className="absolute -top-8 -left-8 w-32 h-32 border-8 rounded-full flex flex-col items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-12 group"
+              style={{ 
+                backgroundColor: theme?.primary_color || '#E63946',
+                borderColor: theme?.border_color || '#000000'
+              }}
+            >
+              <Radio className="w-8 h-8 text-white mb-1" />
+              <span className="text-xs font-black text-white text-center leading-tight">SUBMIT<br/>DEMO</span>
+            </button>
           </div>
         </div>
       </div>
