@@ -7,8 +7,10 @@ import { Textarea } from "./ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
-import { Trash2, Plus, Save, LogOut, Palette } from "lucide-react";
+import { Trash2, Plus, Save, LogOut, Palette, Mail, Eye, EyeOff, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
 
 interface Artist {
   id?: string;
@@ -23,6 +25,7 @@ interface Artist {
   soundcloud: string;
   featured: boolean;
   order_index: number;
+  image_file?: File;
 }
 
 interface Release {
@@ -47,6 +50,15 @@ export default function AdminPanel() {
   const [editingRelease, setEditingRelease] = useState<Release | null>(null);
   const { theme, refreshTheme } = useTheme();
   const navigate = useNavigate();
+
+  // Email auth states
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const [themeForm, setThemeForm] = useState({
     primary_color: '#3B82F6',
@@ -73,21 +85,90 @@ export default function AdminPanel() {
         label_name: theme.label_name
       });
     }
-  }, [theme]);
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setUser(session.user);
+        await checkAdminStatus(session.user);
+        fetchData();
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setIsAdmin(false);
+        setCheckingAdmin(true);
+      }
+    });
+
+    // Add timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (checkingAdmin) {
+        console.warn('Auth check timed out, setting checkingAdmin to false');
+        setCheckingAdmin(false);
+      }
+    }, 10000); // 10 second timeout
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [theme, checkingAdmin]);
+
+  const checkAdminStatus = async (currentUser = user) => {
+    if (!currentUser) {
+      setIsAdmin(false);
+      setCheckingAdmin(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('email', currentUser.email)
+        .single();
+
+      setIsAdmin(!error && data);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+    } finally {
+      setCheckingAdmin(false);
+    }
+  };
 
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUser(user);
-      fetchData();
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error && error.name !== 'AuthSessionMissingError') {
+        throw error;
+      }
+      if (user) {
+        setUser(user);
+        await checkAdminStatus(user);
+        fetchData();
+      } else {
+        // No user logged in, stop checking admin status
+        setCheckingAdmin(false);
+      }
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      alert('Authentication error. Please try logging in again.');
+      setCheckingAdmin(false);
     }
   };
 
   const fetchData = async () => {
-    const { data: artistsData } = await supabase.from('artists').select('*').order('order_index');
-    const { data: releasesData } = await supabase.from('releases').select('*').order('order_index');
-    if (artistsData) setArtists(artistsData);
-    if (releasesData) setReleases(releasesData);
+    try {
+      const { data: artistsData, error: artistsError } = await supabase.from('artists').select('*').order('order_index');
+      const { data: releasesData, error: releasesError } = await supabase.from('releases').select('*').order('order_index');
+      if (artistsError) throw artistsError;
+      if (releasesError) throw releasesError;
+      if (artistsData) setArtists(artistsData);
+      if (releasesData) setReleases(releasesData);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      alert('Failed to load data. Please refresh the page.');
+    }
   };
 
   const signInWithGoogle = async () => {
@@ -99,6 +180,34 @@ export default function AdminPanel() {
     });
   };
 
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (authMode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        alert('Check your email for the confirmation link!');
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        // User will be set via the auth state change listener
+      }
+    } catch (error: any) {
+      console.error('Auth error:', error);
+      alert(error.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -106,64 +215,253 @@ export default function AdminPanel() {
   };
 
   const saveTheme = async () => {
-    await supabase.from('theme_settings').update(themeForm).eq('id', '00000000-0000-0000-0000-000000000001');
-    await refreshTheme();
-    alert('Theme updated!');
+    if (!user) {
+      alert('You must be logged in to save changes.');
+      return;
+    }
+    try {
+      const { error } = await supabase.from('theme_settings').update(themeForm).eq('id', '00000000-0000-0000-0000-000000000001');
+      if (error) throw error;
+      await refreshTheme();
+      alert('Theme updated!');
+    } catch (error) {
+      console.error('Error saving theme:', error);
+      alert('Failed to save theme. Please try again.');
+    }
   };
 
   const saveArtist = async (artist: Artist) => {
-    if (artist.id) {
-      await supabase.from('artists').update(artist).eq('id', artist.id);
-    } else {
-      await supabase.from('artists').insert([artist]);
+    if (!user) {
+      alert('You must be logged in to save changes.');
+      return;
     }
-    setEditingArtist(null);
-    fetchData();
+    try {
+      let imageUrl = artist.image_url;
+
+      // Upload image if a file was selected
+      if (artist.image_file) {
+        const fileExt = artist.image_file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `artist-images/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('artist-images')
+          .upload(filePath, artist.image_file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('artist-images')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      }
+
+      const artistData = {
+        name: artist.name,
+        genre: artist.genre,
+        bio: artist.bio,
+        image_url: imageUrl,
+        color: artist.color,
+        instagram: artist.instagram,
+        twitter: artist.twitter,
+        spotify: artist.spotify,
+        soundcloud: artist.soundcloud,
+        featured: artist.featured,
+        order_index: artist.order_index
+      };
+
+      if (artist.id) {
+        const { error } = await supabase.from('artists').update(artistData).eq('id', artist.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('artists').insert([artistData]);
+        if (error) throw error;
+      }
+      setEditingArtist(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving artist:', error);
+      alert('Failed to save artist. Please try again.');
+    }
   };
 
   const deleteArtist = async (id: string) => {
+    if (!user) {
+      alert('You must be logged in to delete items.');
+      return;
+    }
     if (confirm('Delete this artist?')) {
-      await supabase.from('artists').delete().eq('id', id);
-      fetchData();
+      try {
+        const { error } = await supabase.from('artists').delete().eq('id', id);
+        if (error) throw error;
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting artist:', error);
+        alert('Failed to delete artist. Please try again.');
+      }
     }
   };
 
   const saveRelease = async (release: Release) => {
-    if (release.id) {
-      await supabase.from('releases').update(release).eq('id', release.id);
-    } else {
-      await supabase.from('releases').insert([release]);
+    if (!user) {
+      alert('You must be logged in to save changes.');
+      return;
     }
-    setEditingRelease(null);
-    fetchData();
+    try {
+      if (release.id) {
+        const { error } = await supabase.from('releases').update(release).eq('id', release.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('releases').insert([release]);
+        if (error) throw error;
+      }
+      setEditingRelease(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error saving release:', error);
+      alert('Failed to save release. Please try again.');
+    }
   };
 
   const deleteRelease = async (id: string) => {
+    if (!user) {
+      alert('You must be logged in to delete items.');
+      return;
+    }
     if (confirm('Delete this release?')) {
-      await supabase.from('releases').delete().eq('id', id);
-      fetchData();
+      try {
+        const { error } = await supabase.from('releases').delete().eq('id', id);
+        if (error) throw error;
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting release:', error);
+        alert('Failed to delete release. Please try again.');
+      }
     }
   };
 
-  if (!user) {
+  if (checkingAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-lg font-black">CHECKING PERMISSIONS...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <Card className="w-full max-w-md border-8" style={{ borderColor: theme?.border_color }}>
           <CardHeader>
-            <CardTitle className="text-4xl font-black text-center">ADMIN LOGIN</CardTitle>
+            <CardTitle className="text-4xl font-black text-center">
+              {!user ? 'ADMIN LOGIN' : 'ACCESS DENIED'}
+            </CardTitle>
+            {!user && <p className="text-center text-sm mt-2">Only authorized administrators can access this panel.</p>}
+            {user && !isAdmin && <p className="text-center text-sm mt-2">You don't have admin privileges.</p>}
           </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={signInWithGoogle}
-              className="w-full h-14 text-lg font-black border-4"
-              style={{
-                backgroundColor: theme?.primary_color,
-                borderColor: theme?.border_color
-              }}
-            >
-              Sign in with Google
-            </Button>
-          </CardContent>
+          {!user ? (
+            <CardContent className="space-y-4">
+              {/* Auth Mode Toggle */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setAuthMode('signin')}
+                  variant={authMode === 'signin' ? 'default' : 'outline'}
+                  className="flex-1 border-4 font-black"
+                  style={authMode === 'signin' ? {
+                    backgroundColor: theme?.primary_color,
+                    borderColor: theme?.border_color
+                  } : { borderColor: theme?.border_color }}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  SIGN IN
+                </Button>
+                <Button
+                  onClick={() => setAuthMode('signup')}
+                  variant={authMode === 'signup' ? 'default' : 'outline'}
+                  className="flex-1 border-4 font-black"
+                  style={authMode === 'signup' ? {
+                    backgroundColor: theme?.primary_color,
+                    borderColor: theme?.border_color
+                  } : { borderColor: theme?.border_color }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  SIGN UP
+                </Button>
+              </div>
+
+              {/* Email Auth Form */}
+              <form onSubmit={handleEmailAuth} className="space-y-4">
+                <div>
+                  <Label className="text-lg font-black">EMAIL</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="h-12 border-4 font-bold"
+                    placeholder="admin@example.com"
+                  />
+                </div>
+                <div>
+                  <Label className="text-lg font-black">PASSWORD</Label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="h-12 border-4 font-bold pr-12"
+                      placeholder="••••••••"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-14 text-lg font-black border-4"
+                  style={{
+                    backgroundColor: theme?.primary_color,
+                    borderColor: theme?.border_color
+                  }}
+                >
+                  {loading ? 'LOADING...' : authMode === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN'}
+                </Button>
+              </form>
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" style={{ borderColor: theme?.border_color }} />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 font-black" style={{ color: theme?.border_color }}>Or</span>
+                </div>
+              </div>
+
+              {/* Google OAuth Button */}
+              <Button
+                onClick={signInWithGoogle}
+                variant="outline"
+                className="w-full h-14 text-lg font-black border-4"
+                style={{ borderColor: theme?.border_color }}
+              >
+                Sign in with Google
+              </Button>
+            </CardContent>
+          ) : null}
         </Card>
       </div>
     );
@@ -241,7 +539,7 @@ export default function AdminPanel() {
                   ))}
                 </div>
 
-                <Button 
+                <Button
                   onClick={saveTheme}
                   className="w-full h-14 text-xl font-black border-4"
                   style={{
@@ -259,7 +557,7 @@ export default function AdminPanel() {
           {/* ARTISTS TAB */}
           <TabsContent value="artists">
             <div className="space-y-4">
-              <Button 
+              <Button
                 onClick={() => setEditingArtist({
                   name: '', genre: '', bio: '', image_url: '', color: '#3B82F6',
                   instagram: '', twitter: '', spotify: '', soundcloud: '',
@@ -298,12 +596,30 @@ export default function AdminPanel() {
                         />
                       </div>
                       <div>
-                        <Label className="font-black">IMAGE URL</Label>
-                        <Input
-                          value={editingArtist.image_url}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, image_url: e.target.value })}
-                          className="border-4"
-                        />
+                        <Label className="font-black">IMAGE</Label>
+                        <div className="space-y-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setEditingArtist({ ...editingArtist, image_file: file });
+                              }
+                            }}
+                            className="border-4"
+                          />
+                          <div className="flex items-center gap-2">
+                            <Upload className="w-4 h-4" />
+                            <span className="text-sm font-bold">OR ENTER URL</span>
+                          </div>
+                          <Input
+                            value={editingArtist.image_url}
+                            onChange={(e) => setEditingArtist({ ...editingArtist, image_url: e.target.value })}
+                            className="border-4"
+                            placeholder="https://example.com/artist-image.jpg"
+                          />
+                        </div>
                       </div>
                       <div>
                         <Label className="font-black">COLOR</Label>
@@ -320,6 +636,7 @@ export default function AdminPanel() {
                           value={editingArtist.instagram}
                           onChange={(e) => setEditingArtist({ ...editingArtist, instagram: e.target.value })}
                           className="border-4"
+                          placeholder="@username or https://instagram.com/username"
                         />
                       </div>
                       <div>
@@ -328,6 +645,7 @@ export default function AdminPanel() {
                           value={editingArtist.twitter}
                           onChange={(e) => setEditingArtist({ ...editingArtist, twitter: e.target.value })}
                           className="border-4"
+                          placeholder="@username or https://twitter.com/username"
                         />
                       </div>
                       <div>
@@ -336,6 +654,7 @@ export default function AdminPanel() {
                           value={editingArtist.spotify}
                           onChange={(e) => setEditingArtist({ ...editingArtist, spotify: e.target.value })}
                           className="border-4"
+                          placeholder="https://open.spotify.com/artist/..."
                         />
                       </div>
                       <div>
@@ -344,6 +663,7 @@ export default function AdminPanel() {
                           value={editingArtist.soundcloud}
                           onChange={(e) => setEditingArtist({ ...editingArtist, soundcloud: e.target.value })}
                           className="border-4"
+                          placeholder="https://soundcloud.com/username"
                         />
                       </div>
                     </div>
@@ -392,7 +712,7 @@ export default function AdminPanel() {
           {/* RELEASES TAB */}
           <TabsContent value="releases">
             <div className="space-y-4">
-              <Button 
+              <Button
                 onClick={() => setEditingRelease({
                   title: '', artist_name: '', artwork_url: '', year: new Date().getFullYear().toString(),
                   color: '#3B82F6', spotify_url: '', apple_music_url: '', soundcloud_url: '',
@@ -436,6 +756,7 @@ export default function AdminPanel() {
                           value={editingRelease.artwork_url}
                           onChange={(e) => setEditingRelease({ ...editingRelease, artwork_url: e.target.value })}
                           className="border-4"
+                          placeholder="https://example.com/album-artwork.jpg"
                         />
                       </div>
                       <div>
@@ -461,6 +782,7 @@ export default function AdminPanel() {
                           value={editingRelease.spotify_url}
                           onChange={(e) => setEditingRelease({ ...editingRelease, spotify_url: e.target.value })}
                           className="border-4"
+                          placeholder="https://open.spotify.com/album/..."
                         />
                       </div>
                       <div>
@@ -469,6 +791,7 @@ export default function AdminPanel() {
                           value={editingRelease.apple_music_url}
                           onChange={(e) => setEditingRelease({ ...editingRelease, apple_music_url: e.target.value })}
                           className="border-4"
+                          placeholder="https://music.apple.com/album/..."
                         />
                       </div>
                       <div>
@@ -477,6 +800,7 @@ export default function AdminPanel() {
                           value={editingRelease.soundcloud_url}
                           onChange={(e) => setEditingRelease({ ...editingRelease, soundcloud_url: e.target.value })}
                           className="border-4"
+                          placeholder="https://soundcloud.com/username/album-name"
                         />
                       </div>
                     </div>

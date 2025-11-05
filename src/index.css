@@ -150,3 +150,17 @@
   .animate-bounce-slow {
     animation: bounce 2s ease-in-out infinite;
   }
+
+  /* Subtle glow animation for submit demo button */
+  @keyframes pulse-glow-subtle {
+    0%, 100% {
+      box-shadow: 0 0 15px rgba(230, 57, 70, 0.3), 0 0 30px rgba(230, 57, 70, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 25px rgba(230, 57, 70, 0.5), 0 0 50px rgba(230, 57, 70, 0.3);
+    }
+  }
+
+  .animate-pulse-glow-subtle {
+    animation: pulse-glow-subtle 3s ease-in-out infinite;
+  }

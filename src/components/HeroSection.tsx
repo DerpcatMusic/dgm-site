@@ -5,8 +5,9 @@ import { useTheme } from "@/contexts/ThemeContext";
 export default function HeroSection() {
   const { theme } = useTheme();
   
-  const handleSubmitDemo = () => {
-    window.open('https://tally.so/r/wkQjdP', '_blank');
+  const handleSubmitDemo = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Tally popup will be handled by data attributes
   };
   
   return (
@@ -75,7 +76,7 @@ export default function HeroSection() {
             </p>
             
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button 
+              <Button
                 size="lg"
                 className="border-4 hover:bg-white hover:text-black transition-all duration-200 text-xl font-black px-8 py-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1"
                 style={{
@@ -86,7 +87,7 @@ export default function HeroSection() {
               >
                 EXPLORE ROSTER
               </Button>
-              <Button 
+              <Button
                 size="lg"
                 className="text-white border-4 transition-all duration-200 text-xl font-black px-8 py-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1"
                 style={{
@@ -121,21 +122,31 @@ export default function HeroSection() {
                 borderColor: theme?.border_color || '#000000'
               }}
             >
-              <span className="text-4xl font-black rotate-12">EST.<br/>2024</span>
+              <span className="text-4xl font-black rotate-12">EST.<br/>2025</span>
             </div>
             
             {/* Submit Demo Badge */}
-            <button
-              onClick={handleSubmitDemo}
-              className="absolute -top-8 -left-8 w-32 h-32 border-8 rounded-full flex flex-col items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-12 group"
-              style={{ 
-                backgroundColor: theme?.primary_color || '#E63946',
-                borderColor: theme?.border_color || '#000000'
-              }}
-            >
-              <Radio className="w-8 h-8 text-white mb-1" />
-              <span className="text-xs font-black text-white text-center leading-tight">SUBMIT<br/>DEMO</span>
-            </button>
+            <div className="absolute -top-24 -left-8 flex flex-col items-center gap-1">
+              <div className="text-xs font-black text-center opacity-75">
+                <div className="flex items-center gap-2 animate-bounce">
+                  <span>👇</span>
+                  <span>SUBMIT YOUR DEMO!</span>
+                  <span>💫</span>
+                </div>
+              </div>
+              <a
+                href="#tally-open=jaDeoJ&tally-emoji-text=👋&tally-emoji-animation=wave&tally-auto-close=10000&tally-form-events-forwarding=1"
+                className="w-32 h-32 border-8 rounded-full flex flex-col items-center justify-center transition-all duration-200 hover:scale-110 hover:rotate-12 group no-underline animate-pulse-glow-subtle"
+                style={{
+                  backgroundColor: theme?.primary_color || '#E63946',
+                  borderColor: theme?.border_color || '#000000',
+                  boxShadow: `0 0 15px ${theme?.primary_color || '#E63946'}30`
+                }}
+              >
+                <Radio className="w-8 h-8 text-white mb-1 animate-pulse" />
+                <span className="text-xs font-black text-white text-center leading-tight">SUBMIT<br/>DEMO</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>

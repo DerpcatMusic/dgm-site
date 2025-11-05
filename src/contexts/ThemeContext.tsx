@@ -23,21 +23,33 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<ThemeSettings | null>(null);
 
   const refreshTheme = async () => {
-    const { data } = await supabase
-      .from('theme_settings')
-      .select('*')
-      .single();
-    
-    if (data) {
-      setTheme(data);
-      // Apply CSS variables
-      document.documentElement.style.setProperty('--color-primary', data.primary_color);
-      document.documentElement.style.setProperty('--color-secondary', data.secondary_color);
-      document.documentElement.style.setProperty('--color-accent', data.accent_color);
-      document.documentElement.style.setProperty('--color-extra-1', data.extra_color_1);
-      document.documentElement.style.setProperty('--color-extra-2', data.extra_color_2);
-      document.documentElement.style.setProperty('--color-background', data.background_color);
-      document.documentElement.style.setProperty('--color-border', data.border_color);
+    try {
+      const { data, error } = await supabase
+        .from('theme_settings')
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error loading theme:', error);
+        return;
+      }
+
+      if (data) {
+        console.log('Theme loaded:', data);
+        setTheme(data);
+        // Apply CSS variables
+        document.documentElement.style.setProperty('--color-primary', data.primary_color);
+        document.documentElement.style.setProperty('--color-secondary', data.secondary_color);
+        document.documentElement.style.setProperty('--color-accent', data.accent_color);
+        document.documentElement.style.setProperty('--color-extra-1', data.extra_color_1);
+        document.documentElement.style.setProperty('--color-extra-2', data.extra_color_2);
+        document.documentElement.style.setProperty('--color-background', data.background_color);
+        document.documentElement.style.setProperty('--color-border', data.border_color);
+      } else {
+        console.warn('No theme data found');
+      }
+    } catch (error) {
+      console.error('Failed to refresh theme:', error);
     }
   };
 

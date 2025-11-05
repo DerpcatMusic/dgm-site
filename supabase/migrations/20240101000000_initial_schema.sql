@@ -1,5 +1,11 @@
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
+-- Enable the uuid-ossp extension functions
+create or replace function uuid_generate_v4() returns uuid as $$
+begin
+  return uuid_generate_v4();
+end;
+$$ language plpgsql;
 
 -- Theme Settings Table
 create table theme_settings (
@@ -74,19 +80,19 @@ create policy "Public can read artists" on artists for select using (true);
 create policy "Public can read releases" on releases for select using (true);
 
 -- Admin write access (authenticated users in admin_users table)
-create policy "Admins can update theme" on theme_settings for update 
+create policy "Admins can update theme" on theme_settings for update
+  with check (auth.email() in (select email from admin_users));
+
+create policy "Admins can insert artists" on artists for insert
+  with check (auth.email() in (select email from admin_users));
+create policy "Admins can update artists" on artists for update
+  with check (auth.email() in (select email from admin_users));
+create policy "Admins can delete artists" on artists for delete
   using (auth.email() in (select email from admin_users));
 
-create policy "Admins can insert artists" on artists for insert 
-  using (auth.email() in (select email from admin_users));
-create policy "Admins can update artists" on artists for update 
-  using (auth.email() in (select email from admin_users));
-create policy "Admins can delete artists" on artists for delete 
-  using (auth.email() in (select email from admin_users));
-
-create policy "Admins can insert releases" on releases for insert 
-  using (auth.email() in (select email from admin_users));
-create policy "Admins can update releases" on releases for update 
-  using (auth.email() in (select email from admin_users));
-create policy "Admins can delete releases" on releases for delete 
+create policy "Admins can insert releases" on releases for insert
+  with check (auth.email() in (select email from admin_users));
+create policy "Admins can update releases" on releases for update
+  with check (auth.email() in (select email from admin_users));
+create policy "Admins can delete releases" on releases for delete
   using (auth.email() in (select email from admin_users));
