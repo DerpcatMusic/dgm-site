@@ -32,6 +32,7 @@ interface Release {
   id?: string;
   title: string;
   artist_name: string;
+  artist_id?: string | null;
   artwork_url: string;
   year: string;
   color: string;
@@ -48,6 +49,7 @@ export default function AdminPanel() {
   const [releases, setReleases] = useState<Release[]>([]);
   const [editingArtist, setEditingArtist] = useState<Artist | null>(null);
   const [editingRelease, setEditingRelease] = useState<Release | null>(null);
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   const { theme, refreshTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -214,6 +216,145 @@ export default function AdminPanel() {
     navigate('/');
   };
 
+  const validateRelease = (release: Release): {[key: string]: string} => {
+    const errors: {[key: string]: string} = {};
+    
+    // Title validation
+    if (!release.title?.trim()) {
+      errors.title = 'Title is required';
+    } else if (release.title.length > 200) {
+      errors.title = 'Title must be 200 characters or less';
+    } else if (!/^[a-zA-Z0-9\s\-_.,:!?'"()&]+$/.test(release.title)) {
+      errors.title = 'Title contains invalid characters. Only letters, numbers, spaces, and basic punctuation allowed.';
+    }
+
+    // Artist name validation
+    if (!release.artist_name?.trim()) {
+      errors.artist_name = 'Artist name is required';
+    } else if (release.artist_name.length > 100) {
+      errors.artist_name = 'Artist name must be 100 characters or less';
+    } else if (!/^[a-zA-Z0-9\s\-_.,:!?'"()&]+$/.test(release.artist_name)) {
+      errors.artist_name = 'Artist name contains invalid characters. Only letters, numbers, spaces, and basic punctuation allowed.';
+    }
+
+    // Artwork URL validation
+    if (!release.artwork_url?.trim()) {
+      errors.artwork_url = 'Artwork URL is required';
+    } else if (!/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(release.artwork_url)) {
+      errors.artwork_url = 'Please enter a valid image URL (jpg, jpeg, png, gif, webp, svg)';
+    }
+
+    // Year validation
+    if (!release.year?.trim()) {
+      errors.year = 'Year is required';
+    } else if (!/^\d{4}$/.test(release.year)) {
+      errors.year = 'Please enter a valid 4-digit year';
+    } else {
+      const yearNum = parseInt(release.year);
+      const currentYear = new Date().getFullYear();
+      if (yearNum < 1900 || yearNum > currentYear + 5) {
+        errors.year = `Year must be between 1900 and ${currentYear + 5}`;
+      }
+    }
+
+    // Color validation (hex color)
+    if (!release.color?.trim()) {
+      errors.color = 'Color is required';
+    } else if (!/^#[0-9A-Fa-f]{6}$/.test(release.color)) {
+      errors.color = 'Please enter a valid hex color (e.g., #FF0000)';
+    }
+
+    // URL validations (optional fields)
+    if (release.spotify_url && !/^https?:\/\/(open\.spotify\.com|spotify\.com)\/.+$/i.test(release.spotify_url)) {
+      errors.spotify_url = 'Please enter a valid Spotify URL';
+    }
+    if (release.apple_music_url && !/^https?:\/\/.*music\.apple\.com\/.+$/i.test(release.apple_music_url)) {
+      errors.apple_music_url = 'Please enter a valid Apple Music URL';
+    }
+    if (release.soundcloud_url && !/^https?:\/\/soundcloud\.com\/.+$/i.test(release.soundcloud_url)) {
+      errors.soundcloud_url = 'Please enter a valid SoundCloud URL';
+    }
+
+    return errors;
+  };
+
+  const validateArtist = (artist: Artist): {[key: string]: string} => {
+    const errors: {[key: string]: string} = {};
+
+    // Name validation
+    if (!artist.name?.trim()) {
+      errors.name = 'Artist name is required';
+    } else if (artist.name.length > 100) {
+      errors.name = 'Artist name must be 100 characters or less';
+    } else if (!/^[a-zA-Z0-9\s\-_.'&]+$/.test(artist.name)) {
+      errors.name = 'Artist name can only contain letters, numbers, spaces, and basic punctuation';
+    }
+
+    // Genre validation
+    if (artist.genre?.trim() && (artist.genre.length > 50 || !/^[a-zA-Z0-9\s\-_.'&]+$/.test(artist.genre))) {
+      errors.genre = 'Genre must be 50 characters or less and contain only letters, numbers, spaces, and basic punctuation';
+    }
+
+    // Image URL validation
+    if (artist.image_url?.trim() && !/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/i.test(artist.image_url)) {
+      errors.image_url = 'Image URL must be a valid image URL (jpg, jpeg, png, gif, webp, svg)';
+    }
+
+    // Color validation
+    if (artist.color?.trim() && !artist.color.match(/^#[0-9A-Fa-f]{6}$/)) {
+      errors.color = 'Color must be a valid hex color (e.g., #FF0000)';
+    }
+
+    // Bio validation
+    if (artist.bio?.trim() && artist.bio.length > 1000) {
+      errors.bio = 'Bio must be 1000 characters or less';
+    }
+
+    // URL validations
+    if (artist.spotify?.trim() && !artist.spotify.includes('spotify.com')) {
+      errors.spotify = 'Spotify URL must be a valid Spotify link';
+    }
+    if (artist.instagram?.trim() && !artist.instagram.includes('instagram.com') && !artist.instagram.startsWith('@')) {
+      errors.instagram = 'Instagram must be a valid Instagram URL or @username';
+    }
+    if (artist.twitter?.trim() && !artist.twitter.includes('twitter.com') && !artist.twitter.startsWith('@')) {
+      errors.twitter = 'Twitter must be a valid Twitter URL or @username';
+    }
+    if (artist.soundcloud?.trim() && !artist.soundcloud.includes('soundcloud.com')) {
+      errors.soundcloud = 'SoundCloud URL must be a valid SoundCloud link';
+    }
+
+    return errors;
+  };
+
+  const getDetailedErrorMessage = (error: any): string => {
+    if (!error) return 'An unknown error occurred';
+    
+    // Supabase error handling
+    if (error.code) {
+      switch (error.code) {
+        case 'PGRST116':
+          return 'Access denied. You must be an admin to perform this action.';
+        case '23505':
+          return 'This record already exists. Please check for duplicates.';
+        case '23503':
+          return 'Invalid reference. Please check that all referenced items exist.';
+        case '23502':
+          return 'Missing required field. Please fill in all required fields.';
+        case '23514':
+          return 'Invalid data format. Please check your input values.';
+        case 'PGRST301':
+          return 'JWT expired. Please log in again.';
+        case 'PGRST302':
+          return 'Invalid JWT. Please log in again.';
+        default:
+          return error.message || 'Database error occurred';
+      }
+    }
+    
+    return error.message || 'An error occurred while saving';
+  };
+
   const saveTheme = async () => {
     if (!user) {
       alert('You must be logged in to save changes.');
@@ -235,6 +376,20 @@ export default function AdminPanel() {
       alert('You must be logged in to save changes.');
       return;
     }
+    
+    // Clear previous errors
+    setFormErrors({});
+    
+    // Validate artist data
+    const validationErrors = validateArtist(artist);
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      // Show first error in alert
+      const firstError = Object.values(validationErrors)[0];
+      alert(`Validation Error: ${firstError}`);
+      return;
+    }
+    
     try {
       let imageUrl = artist.image_url;
 
@@ -258,15 +413,15 @@ export default function AdminPanel() {
       }
 
       const artistData = {
-        name: artist.name,
-        genre: artist.genre,
-        bio: artist.bio,
+        name: artist.name.trim(),
+        genre: artist.genre.trim(),
+        bio: artist.bio.trim(),
         image_url: imageUrl,
-        color: artist.color,
-        instagram: artist.instagram,
-        twitter: artist.twitter,
-        spotify: artist.spotify,
-        soundcloud: artist.soundcloud,
+        color: artist.color.trim(),
+        instagram: artist.instagram.trim(),
+        twitter: artist.twitter.trim(),
+        spotify: artist.spotify.trim(),
+        soundcloud: artist.soundcloud.trim(),
         featured: artist.featured,
         order_index: artist.order_index
       };
@@ -279,10 +434,13 @@ export default function AdminPanel() {
         if (error) throw error;
       }
       setEditingArtist(null);
+      setFormErrors({});
       fetchData();
+      alert('Artist saved successfully!');
     } catch (error) {
       console.error('Error saving artist:', error);
-      alert('Failed to save artist. Please try again.');
+      const detailedMessage = getDetailedErrorMessage(error);
+      alert(`Error: ${detailedMessage}`);
     }
   };
 
@@ -308,19 +466,50 @@ export default function AdminPanel() {
       alert('You must be logged in to save changes.');
       return;
     }
+    
+    // Clear previous errors
+    setFormErrors({});
+    
+    // Validate form
+    const validationErrors = validateRelease(release);
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      // Show first error in alert
+      const firstError = Object.values(validationErrors)[0];
+      alert(`Validation Error: ${firstError}`);
+      return;
+    }
+    
     try {
+      const releaseData = {
+        title: release.title.trim(),
+        artist_name: release.artist_name.trim(),
+        artist_id: release.artist_id,
+        artwork_url: release.artwork_url.trim(),
+        year: release.year.trim(),
+        color: release.color.trim(),
+        spotify_url: release.spotify_url?.trim() || null,
+        apple_music_url: release.apple_music_url?.trim() || null,
+        soundcloud_url: release.soundcloud_url?.trim() || null,
+        featured: release.featured,
+        order_index: release.order_index
+      };
+
       if (release.id) {
-        const { error } = await supabase.from('releases').update(release).eq('id', release.id);
+        const { error } = await supabase.from('releases').update(releaseData).eq('id', release.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('releases').insert([release]);
+        const { error } = await supabase.from('releases').insert([releaseData]);
         if (error) throw error;
       }
       setEditingRelease(null);
+      setFormErrors({});
       fetchData();
+      alert('Release saved successfully!');
     } catch (error) {
       console.error('Error saving release:', error);
-      alert('Failed to save release. Please try again.');
+      const detailedMessage = getDetailedErrorMessage(error);
+      alert(`Error: ${detailedMessage}`);
     }
   };
 
@@ -583,17 +772,25 @@ export default function AdminPanel() {
                         <Label className="font-black">NAME</Label>
                         <Input
                           value={editingArtist.name}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, name: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingArtist({ ...editingArtist, name: e.target.value });
+                            if (formErrors.name) setFormErrors({...formErrors, name: ''});
+                          }}
+                          className={`border-4 ${formErrors.name ? 'border-red-500 bg-red-50' : ''}`}
                         />
+                        {formErrors.name && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.name}</p>}
                       </div>
                       <div>
                         <Label className="font-black">GENRE</Label>
                         <Input
                           value={editingArtist.genre}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, genre: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingArtist({ ...editingArtist, genre: e.target.value });
+                            if (formErrors.genre) setFormErrors({...formErrors, genre: ''});
+                          }}
+                          className={`border-4 ${formErrors.genre ? 'border-red-500 bg-red-50' : ''}`}
                         />
+                        {formErrors.genre && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.genre}</p>}
                       </div>
                       <div>
                         <Label className="font-black">IMAGE</Label>
@@ -615,10 +812,14 @@ export default function AdminPanel() {
                           </div>
                           <Input
                             value={editingArtist.image_url}
-                            onChange={(e) => setEditingArtist({ ...editingArtist, image_url: e.target.value })}
-                            className="border-4"
+                            onChange={(e) => {
+                              setEditingArtist({ ...editingArtist, image_url: e.target.value });
+                              if (formErrors.image_url) setFormErrors({...formErrors, image_url: ''});
+                            }}
+                            className={`border-4 ${formErrors.image_url ? 'border-red-500 bg-red-50' : ''}`}
                             placeholder="https://example.com/artist-image.jpg"
                           />
+                          {formErrors.image_url && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.image_url}</p>}
                         </div>
                       </div>
                       <div>
@@ -626,54 +827,78 @@ export default function AdminPanel() {
                         <Input
                           type="color"
                           value={editingArtist.color}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, color: e.target.value })}
-                          className="border-4 h-10"
+                          onChange={(e) => {
+                            setEditingArtist({ ...editingArtist, color: e.target.value });
+                            if (formErrors.color) setFormErrors({...formErrors, color: ''});
+                          }}
+                          className={`border-4 h-10 ${formErrors.color ? 'border-red-500' : ''}`}
                         />
+                        {formErrors.color && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.color}</p>}
                       </div>
                       <div>
                         <Label className="font-black">INSTAGRAM</Label>
                         <Input
                           value={editingArtist.instagram}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, instagram: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingArtist({ ...editingArtist, instagram: e.target.value });
+                            if (formErrors.instagram) setFormErrors({...formErrors, instagram: ''});
+                          }}
+                          className={`border-4 ${formErrors.instagram ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="@username or https://instagram.com/username"
                         />
+                        {formErrors.instagram && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.instagram}</p>}
                       </div>
                       <div>
                         <Label className="font-black">TWITTER</Label>
                         <Input
                           value={editingArtist.twitter}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, twitter: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingArtist({ ...editingArtist, twitter: e.target.value });
+                            if (formErrors.twitter) setFormErrors({...formErrors, twitter: ''});
+                          }}
+                          className={`border-4 ${formErrors.twitter ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="@username or https://twitter.com/username"
                         />
+                        {formErrors.twitter && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.twitter}</p>}
                       </div>
                       <div>
                         <Label className="font-black">SPOTIFY</Label>
                         <Input
                           value={editingArtist.spotify}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, spotify: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingArtist({ ...editingArtist, spotify: e.target.value });
+                            if (formErrors.spotify) setFormErrors({...formErrors, spotify: ''});
+                          }}
+                          className={`border-4 ${formErrors.spotify ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="https://open.spotify.com/artist/..."
                         />
+                        {formErrors.spotify && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.spotify}</p>}
                       </div>
                       <div>
                         <Label className="font-black">SOUNDCLOUD</Label>
                         <Input
                           value={editingArtist.soundcloud}
-                          onChange={(e) => setEditingArtist({ ...editingArtist, soundcloud: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingArtist({ ...editingArtist, soundcloud: e.target.value });
+                            if (formErrors.soundcloud) setFormErrors({...formErrors, soundcloud: ''});
+                          }}
+                          className={`border-4 ${formErrors.soundcloud ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="https://soundcloud.com/username"
                         />
+                        {formErrors.soundcloud && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.soundcloud}</p>}
                       </div>
                     </div>
                     <div>
                       <Label className="font-black">BIO</Label>
                       <Textarea
                         value={editingArtist.bio}
-                        onChange={(e) => setEditingArtist({ ...editingArtist, bio: e.target.value })}
-                        className="border-4 min-h-24"
+                        onChange={(e) => {
+                          setEditingArtist({ ...editingArtist, bio: e.target.value });
+                          if (formErrors.bio) setFormErrors({...formErrors, bio: ''});
+                        }}
+                        className={`border-4 min-h-24 ${formErrors.bio ? 'border-red-500 bg-red-50' : ''}`}
                       />
+                      {formErrors.bio && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.bio}</p>}
                     </div>
                     <div className="flex gap-4">
                       <Button onClick={() => saveArtist(editingArtist)} className="flex-1 border-4 font-black">
@@ -714,7 +939,7 @@ export default function AdminPanel() {
             <div className="space-y-4">
               <Button
                 onClick={() => setEditingRelease({
-                  title: '', artist_name: '', artwork_url: '', year: new Date().getFullYear().toString(),
+                  title: '', artist_name: '', artist_id: null, artwork_url: '', year: new Date().getFullYear().toString(),
                   color: '#3B82F6', spotify_url: '', apple_music_url: '', soundcloud_url: '',
                   featured: true, order_index: releases.length
                 })}
@@ -738,70 +963,125 @@ export default function AdminPanel() {
                         <Label className="font-black">TITLE</Label>
                         <Input
                           value={editingRelease.title}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, title: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, title: e.target.value });
+                            if (formErrors.title) setFormErrors({...formErrors, title: ''});
+                          }}
+                          className={`border-4 ${formErrors.title ? 'border-red-500 bg-red-50' : ''}`}
                         />
+                        {formErrors.title && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.title}</p>}
+                      </div>
+                      <div>
+                        <Label className="font-black">ARTIST</Label>
+                        <select
+                          value={editingRelease.artist_id || ''}
+                          onChange={(e) => {
+                            const selectedArtist = artists.find(a => a.id === e.target.value);
+                            setEditingRelease({ 
+                              ...editingRelease, 
+                              artist_id: e.target.value || null,
+                              artist_name: selectedArtist?.name || editingRelease.artist_name
+                            });
+                          }}
+                          className="border-4 h-10 w-full px-3 py-2 bg-white font-bold"
+                        >
+                          <option value="">Select Artist (Optional)</option>
+                          {artists.map((artist) => (
+                            <option key={artist.id} value={artist.id}>
+                              {artist.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <Label className="font-black">ARTIST NAME</Label>
                         <Input
                           value={editingRelease.artist_name}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, artist_name: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, artist_name: e.target.value });
+                            if (formErrors.artist_name) setFormErrors({...formErrors, artist_name: ''});
+                          }}
+                          className={`border-4 ${formErrors.artist_name ? 'border-red-500 bg-red-50' : ''}`}
+                          placeholder="Enter artist name manually if not in list"
                         />
+                        {formErrors.artist_name && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.artist_name}</p>}
                       </div>
                       <div>
                         <Label className="font-black">ARTWORK URL</Label>
                         <Input
                           value={editingRelease.artwork_url}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, artwork_url: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, artwork_url: e.target.value });
+                            if (formErrors.artwork_url) setFormErrors({...formErrors, artwork_url: ''});
+                          }}
+                          className={`border-4 ${formErrors.artwork_url ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="https://example.com/album-artwork.jpg"
                         />
+                        {formErrors.artwork_url && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.artwork_url}</p>}
                       </div>
                       <div>
                         <Label className="font-black">YEAR</Label>
                         <Input
                           value={editingRelease.year}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, year: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, year: e.target.value });
+                            if (formErrors.year) setFormErrors({...formErrors, year: ''});
+                          }}
+                          className={`border-4 ${formErrors.year ? 'border-red-500 bg-red-50' : ''}`}
                         />
+                        {formErrors.year && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.year}</p>}
                       </div>
                       <div>
                         <Label className="font-black">COLOR</Label>
                         <Input
                           type="color"
                           value={editingRelease.color}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, color: e.target.value })}
-                          className="border-4 h-10"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, color: e.target.value });
+                            if (formErrors.color) setFormErrors({...formErrors, color: ''});
+                          }}
+                          className={`border-4 h-10 ${formErrors.color ? 'border-red-500' : ''}`}
                         />
+                        {formErrors.color && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.color}</p>}
                       </div>
                       <div>
                         <Label className="font-black">SPOTIFY URL</Label>
                         <Input
                           value={editingRelease.spotify_url}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, spotify_url: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, spotify_url: e.target.value });
+                            if (formErrors.spotify_url) setFormErrors({...formErrors, spotify_url: ''});
+                          }}
+                          className={`border-4 ${formErrors.spotify_url ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="https://open.spotify.com/album/..."
                         />
+                        {formErrors.spotify_url && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.spotify_url}</p>}
                       </div>
                       <div>
                         <Label className="font-black">APPLE MUSIC URL</Label>
                         <Input
                           value={editingRelease.apple_music_url}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, apple_music_url: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, apple_music_url: e.target.value });
+                            if (formErrors.apple_music_url) setFormErrors({...formErrors, apple_music_url: ''});
+                          }}
+                          className={`border-4 ${formErrors.apple_music_url ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="https://music.apple.com/album/..."
                         />
+                        {formErrors.apple_music_url && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.apple_music_url}</p>}
                       </div>
                       <div>
                         <Label className="font-black">SOUNDCLOUD URL</Label>
                         <Input
                           value={editingRelease.soundcloud_url}
-                          onChange={(e) => setEditingRelease({ ...editingRelease, soundcloud_url: e.target.value })}
-                          className="border-4"
+                          onChange={(e) => {
+                            setEditingRelease({ ...editingRelease, soundcloud_url: e.target.value });
+                            if (formErrors.soundcloud_url) setFormErrors({...formErrors, soundcloud_url: ''});
+                          }}
+                          className={`border-4 ${formErrors.soundcloud_url ? 'border-red-500 bg-red-50' : ''}`}
                           placeholder="https://soundcloud.com/username/album-name"
                         />
+                        {formErrors.soundcloud_url && <p className="text-red-500 text-xs mt-1 font-bold">{formErrors.soundcloud_url}</p>}
                       </div>
                     </div>
                     <div className="flex gap-4">
